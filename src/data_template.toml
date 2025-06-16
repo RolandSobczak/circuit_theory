@@ -1,0 +1,44 @@
+[ex1]
+j1_src = 
+j2_src = 
+e_src = 
+r1 = 
+r2 = 
+r3 = 
+
+[ex2]
+e_src = 
+r1 = 
+r2 = 
+r3 = 
+
+[ex3]
+e1_src = 
+e3_src = 
+j_src = 
+r1 = 
+r2 = 
+r3 = 
+
+[ex4]
+rw = 
+e_src = 
+r1 = 
+r2 = 
+r3 = 
+r4 = 
+r5 = 
+r6 = 
+
+[ex5]
+e1_src = 
+e2_src = 
+j3 = 
+j4 = 
+r1 = 
+r2 = 
+r3 = 
+r4 = 
+r5 = 
+r6 = 
+r7 = 

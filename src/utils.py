@@ -15,7 +15,7 @@ def round_sig(x, sig=4):
 
 
 def calc_parallel_resistance(resistors: List[any]) -> any:
-    value = round_sig(1 / sum([round_sig(1 / r.value) for r in resistors]))
+    value = 1 / sum([round_sig(1 / r.value) for r in resistors])
     return Resistor(value)
 
 
@@ -30,7 +30,7 @@ def calc_current_divider(src: Current, req: Resistance, rk: Resistance) -> Curre
         raise ValueError("Invalid type for rk.")
 
     resistance = round_sig(req / rk)
-    return round_sig(src * resistance)
+    return src * resistance
 
 
 @dataclass
@@ -38,7 +38,7 @@ class Resistor:
     value: Resistance
 
     def __add__(self, rhs):
-        value = round_sig(self.value + rhs.value)
+        value = self.value + rhs.value
         return Resistor(value)
 
     def parallel(self, rhs):
