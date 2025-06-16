@@ -54,6 +54,18 @@ class Task1Input:
 
 
 @dataclass
+class Task2Input:
+    E1: float
+    E2: float
+    J3: float
+    R1: float
+    R2: float
+    R3: float
+    R4: float
+    R5: float
+
+
+@dataclass
 class Task3Input:
     E1: InputNumber
     E2: InputNumber
@@ -78,6 +90,20 @@ class Task4Input:
     XL3: float
     XC3: float
     XC4: float
+
+
+@dataclass
+class Task5Input:
+    E1: InputNumber
+    E2: InputNumber
+    J3: InputNumber
+    R1: InputNumber
+    R3: InputNumber
+    R4: InputNumber
+    OMEGA: float
+    C1: float
+    L2: float
+    C3: float
 
 
 def calc_parallel_resistance(resistors: List[InputNumber]) -> InputNumber:
@@ -121,6 +147,53 @@ def task1(data: Task1Input):
     }
 
     print(" === Task 1 ===")
+    print_results(output)
+
+
+def task2(data: Task2Input):
+    numerator = data.R5 * data.R4 + data.R4 * data.R3 + data.R3 * data.R5
+    r_tb = numerator / data.R3
+    r_tr = numerator / data.R4
+    r_br = numerator / data.R5
+
+    r_tr_prime = calc_parallel_resistance([r_tr, data.R1])
+    r_br_prime = calc_parallel_resistance([r_br, data.R2])
+
+    r_series = r_tr_prime + r_br_prime
+    r_n = calc_parallel_resistance([r_tb, r_series])
+
+    g_n = 1 / r_n
+
+    vl, vr = symbols("vl vr")
+
+    lhs1 = vl / data.R5 + vl / data.R4 + (vl - vr) / data.R3 - data.J3
+    rhs1 = 0
+    eq1 = Eq(lhs1, rhs1)
+
+    lhs2 = (
+        (vr - data.E1) / data.R1
+        + (vr - data.E2) / data.R2
+        + (vr - vl) / data.R3
+        + data.J3
+    )
+    rhs2 = 0
+    eq2 = Eq(lhs2, rhs2)
+
+    solution = solve((eq1, eq2), (vl, vr))
+
+    j_n = solution[vl] / data.R5 + (solution[vr] - data.E1) / data.R1
+
+    current = j_n / 2
+    power = current**2 * r_n
+
+    output = {
+        "GN": g_n,
+        "JN": j_n.evalf(),
+        "R": r_n,
+        "I": current,
+        "P": power,
+    }
+    print(" === Task 2 ===")
     print_results(output)
 
 
@@ -173,7 +246,8 @@ def task4(data: Task4Input):
     u_ab2 = i_e2 * data.R5
 
     # u_ab2 = data.E2 * data.R5 / (z1 + data.R5)
-    et = u_ab1 + u_ab2
+    # et = u_ab1 + u_ab2
+    et = data.E1 * -I * data.XC4 / sum([data.R1, I * data.XL1, -I * data.XC4])
 
     modulus = Abs(et)
     angle_rad = arg(et)
@@ -189,6 +263,53 @@ def task4(data: Task4Input):
     print_results(output)
 
 
+def task5(data: Task5Input):
+    C1 = data.C1 * 10**-6
+    C3 = data.C3 * 10**-6
+    L2 = data.L2 * 10**-3
+
+    omega = 260  # [rad/s]
+
+    Zc1 = 1 / (1j * omega * C1)
+    Zl2 = 1j * omega * L2
+    Zc3 = 1 / (1j * omega * C3)
+    Z3 = data.R3 + Zc3
+
+    Z_branch1 = Zc1 + data.R1
+    Z_branch2 = Zl2 + Z3
+
+    Z_th = (Z_branch1 * Z_branch2) / (Z_branch1 + Z_branch2)
+    Y_th = 1 / Z_th
+
+    V_oc = 21.931 + 1j * 14.149
+
+    J_N = V_oc / Z_th
+    Y_N = 1 / Z_th
+
+    Y_R4 = 1 / data.R4
+
+    I4 = J_N * (Y_R4 / (Y_N + Y_R4))
+
+    I4_mag = np.abs(I4)
+    phi4_rad = np.angle(I4)
+    phi4_deg = np.degrees(phi4_rad)
+    P4 = I4_mag**2 * data.R4
+
+    jn_modulus = Abs(J_N)
+    jn_angle_rad = arg(J_N)
+    jn_angle_deg = deg(jn_angle_rad)
+
+    output = {
+        "JN": f"(|z|={N(jn_modulus, 4)} angle={N(jn_angle_deg, 4)})",
+        "YN": Y_N,
+        "I4": I4_mag,
+        "φ4": phi4_deg,
+        "P4": P4,
+    }
+    print(" === Task 5 ===")
+    print_results(output)
+
+
 if __name__ == "__main__":
     task1_data = Task1Input(
         E1=95,
@@ -201,6 +322,17 @@ if __name__ == "__main__":
         R=3,
     )
     task1(task1_data)
+    task2_data = Task2Input(
+        E1=24,
+        E2=89,
+        J3=6,
+        R1=7,
+        R2=16,
+        R3=6,
+        R4=6,
+        R5=10,
+    )
+    task2(task2_data)
     task3_data = Task3Input(
         E1=35 + 56 * I,
         E2=85 + 44 * I,
@@ -226,3 +358,16 @@ if __name__ == "__main__":
         XC4=4.3,
     )
     task4(task4_data)
+    task5_data = Task5Input(
+        E1=29 + 23 * I,
+        E2=20 + 17 * I,
+        J3=6 + 6 * I,
+        R1=2.7,
+        R3=2.2,
+        R4=4.6,
+        OMEGA=260,
+        C1=1300,
+        L2=50,
+        C3=1300,
+    )
+    task5(task5_data)
