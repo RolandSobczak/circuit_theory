@@ -111,6 +111,13 @@ def calc_parallel_resistance(resistors: List[InputNumber]) -> InputNumber:
     return value
 
 
+def get_polar_form(num: InputNumber) -> str:
+    modulus = Abs(num)
+    angle_rad = arg(num)
+    angle_deg = deg(angle_rad)
+    return f"(|z|={N(modulus, 4)} angle={N(angle_deg, 4)})"
+
+
 def task1(data: Task1Input):
     r_a = (data.R4 * data.R3) / sum([data.R3, data.R4, data.R5])
     r_b = (data.R4 * data.R5) / sum([data.R3, data.R4, data.R5])
@@ -221,13 +228,16 @@ def task3(data: Task3Input):
     i3_angle_rad = arg(i3)
     i3_angle_deg = deg(i3_angle_rad)
 
+    s3 = z3 * i3_modulus**2
+    # s3 = et * i3.conjugate()
+
     output = {
         "ZT": zt,
         "ET": f"(|z|={N(modulus, 4)} angle={N(angle_deg, 4)})",
         "i3": f"(|z|={N(i3_modulus, 4)} angle={N(i3_angle_deg, 4)})",
+        "S3": s3.evalf(),
     }
     print(" === Task 3 ===")
-    print(f"i3={i3.evalf()}")
     print_results(output)
 
 
@@ -239,27 +249,39 @@ def task4(data: Task4Input):
     z35 = calc_parallel_resistance([z3, data.R5])
     zt = z14 + z35
 
-    u_ab1 = data.E1 * z4 / (z1 + z4)
+    current1 = data.E1 / sum([data.R1, -I * data.XC4, I * data.XL1])
+    current2 = data.E2 / sum([data.R3, data.R5, I * data.XL3, -I * data.XC3])
 
-    z_e2_path = data.R3 + I * data.XL3 - I * data.XC3 + data.R5
-    i_e2 = data.E2 / z_e2_path
-    u_ab2 = i_e2 * data.R5
+    u_ab1 = I * data.XC4 * current1
+    u_ab2 = current2 * data.R5
 
-    # u_ab2 = data.E2 * data.R5 / (z1 + data.R5)
-    # et = u_ab1 + u_ab2
-    et = data.E1 * -I * data.XC4 / sum([data.R1, I * data.XL1, -I * data.XC4])
+    et = u_ab1 + u_ab2
+    # et = data.E1 * -I * data.XC4 / sum([data.R1, I * data.XL1, -I * data.XC4])
+    # et = data.E1 - data.E2
+
+    current_i2 = et / sum([zt, data.R2, I * data.XL2])
 
     modulus = Abs(et)
     angle_rad = arg(et)
     angle_deg = deg(angle_rad)
 
+    active_power = Abs(current_i2) ** 2 * data.R2
+    reactive_power = Abs(current_i2) ** 2 * data.XL2
+
+    i_n = et / zt
+    y_n = 1 / zt
+
     output = {
+        "I2": get_polar_form(current_i2.evalf()),
         "ZT": zt.evalf(),
         "ET": f"(|z|={N(modulus, 4)} angle={N(angle_deg, 4)})",
+        "P": active_power.evalf(),
+        "Q": reactive_power.evalf(),
+        "JN": get_polar_form(i_n.evalf()),
+        "YN": get_polar_form(y_n),
     }
 
     print(" === Task 4 ===")
-    print(f"zt={zt.evalf()}")
     print_results(output)
 
 
