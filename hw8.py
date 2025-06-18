@@ -148,42 +148,46 @@ def task1(data: Task1Input):
 
 
 def task2(data: Task2Input):
-    R1, R2, R3 = 8.3, 6.7, 9.8
-    XC1 = 17.9
-    XL1 = 17.4
-    E1 = 17.6
-    E2 = 4.7 - 7.4 * I
+    v1 = symbols("v1")
 
-    # Impedancje
-    Z1 = R1 - I * XC1
-    Z2 = R2 + I * XL1
-    Z3 = R3
+    lhs1 = v1 * (
+        1 / sum([data.R1, -I * data.XC1])
+        + 1 / data.R3
+        + 1 / sum([data.R2, I * data.XL1])
+    )
+    rhs1 = data.E1 / sum([data.R1, -I * data.XC1]) + data.E2 / sum(
+        [data.R2, I * data.XL1]
+    )
+    eq1 = Eq(lhs1, rhs1)
 
-    # Admitancje
-    Y1 = 1 / Z1
-    Y2 = 1 / Z2
-    Y3 = 1 / Z3
+    solution = solve((eq1,), (v1,))
+
+    current1 = (data.E1 - solution[v1]) / sum([data.R1, -I * data.XC1])
+    current2 = (data.E2 - solution[v1]) / sum([data.R2, I * data.XL1])
+    current3 = solution[v1] / data.R3
+
+    y11 = 1 / sum([data.R1, -I * data.XC1])
+    j11 = data.E1 - solution[v1]
 
     # Całkowita admitancja własna węzła
-    Y11 = simplify(Y1 + Y2 + Y3)
+    Y11 = (
+        1 / sum([data.R1, -I * data.XC1])
+        + 1 / data.R3
+        + 1 / sum([data.R2, I * data.XL1])
+    )
 
     # Prąd źródłowy Jz11
-    Jz11 = simplify(E1 / Z1 + E2 / Z2)
+    Jz11 = simplify(
+        data.E1 / sum([data.R1, -I * data.XC1]) + data.E2 / sum([data.R2, I * data.XL1])
+    )
 
-    # Równanie: Y11 * V1 = Jz11
-    V1_val = simplify(Jz11 / Y11)
-
-    # Prądy
-    I1 = simplify(-1 * (V1_val - E1) / Z1)
-    I2 = simplify(-1 * (V1_val - E2) / Z2)
-    I3 = simplify(V1_val / Z3)
     output = {
         "Y11": Y11,
         "Jz11": Jz11,
-        "V1": V1_val,
-        "I1": I1,
-        "I2": I2,
-        "I3": I3,
+        "V1": solution[v1],
+        "I1": current1,
+        "I2": current2,
+        "I3": current3,
     }
 
     print(" === Task 2 ===")
@@ -326,6 +330,7 @@ def task4(data: Task4Input):
         "Z33": z33,
         "Z23": z23,
         "E33": e33,
+        "I_I": c1,
         "I1": i1,
         "I2": i2,
         "I3": i3,
@@ -394,58 +399,58 @@ def task5(data: Task5Input):
 
 if __name__ == "__main__":
     task1_data = Task1Input(
-        J1=15,
+        J1=9,
         E2=29,
-        Z1=7,
-        Z2=9 * I,
-        Z3=5 + 14 * I,
-        Z4=15,
-        Z5=6,
+        Z1=9,
+        Z2=14 * I,
+        Z3=3 + 7 * I,
+        Z4=10,
+        Z5=7,
     )
     task1(task1_data)
     task2_data = Task2Input(
-        E1=17.6,
-        E2=4.7 - 7.4 * I,
-        R1=8.3,
-        R2=6.7,
-        R3=9.8,
-        XC1=17.9,
-        XL1=17.4,
+        E1=10.6,
+        E2=4.1 - 8.2 * I,
+        R1=8.1,
+        R2=4.4,
+        R3=8.1,
+        XC1=17.1,
+        XL1=19.6,
     )
     task2(task2_data)
     task3_data = Task3Input(
-        E1=18,
-        E2=152,
-        Z1=8.8 + 5.8 * I,
-        Z2=8.4 - 8.1 * I,
-        Z3=5 + 8.7 * I,
-        Z4=10 - 5.6 * I,
-        Z5=6.8 + 4 * I,
-        Z6=0 - 15.1 * I,
-        Z7=17,
+        E1=19,
+        E2=156,
+        Z1=8.8 + 9.5 * I,
+        Z2=9.2 - 5.7 * I,
+        Z3=5.9 + 5.8 * I,
+        Z4=5.1 - 5 * I,
+        Z5=8 + 6 * I,
+        Z6=0 - 17.2 * I,
+        Z7=22,
     )
     task3(task3_data)
     task4_data = Task4Input(
-        E1=199,
-        E2=0 + 70 * I,
-        R1=9.6,
-        R2=9.4,
-        R3=8.6,
-        R5=9.2,
-        XL1=9.7,
-        XL2=9.7,
-        XC4=9.7,
-        XL3=7.5,
-        XC3=7.5,
+        E1=171,
+        E2=0 + 82 * I,
+        R1=2.5,
+        R2=6.4,
+        R3=3.4,
+        R5=7.3,
+        XL1=16.7,
+        XL2=16.7,
+        XC4=16.7,
+        XL3=3.6,
+        XC3=3.6,
     )
     task4(task4_data)
     task5_data = Task5Input(
-        E1=17.3,
-        E2=3.8 - 8.5 * I,
-        R1=7.8,
-        R2=6.9,
-        R3=6.4,
-        XC1=11.6,
-        XL1=6.9,
+        E1=10.5,
+        E2=3.2 - 4.9 * I,
+        R1=4.7,
+        R2=4.1,
+        R3=6.2,
+        XC1=19.4,
+        XL1=19.1,
     )
     task5(task5_data)
